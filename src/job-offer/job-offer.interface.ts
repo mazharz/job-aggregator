@@ -30,5 +30,5 @@ export interface ISkill {
 export interface ILocation {
   id?: number;
   state?: string;
-  city?: string;
+  city: string;
 }

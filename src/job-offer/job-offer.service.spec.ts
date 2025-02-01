@@ -7,6 +7,9 @@ import { SourceBTransformer } from './transformers/source-b.transformer';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { JobOffer } from './entities/job-offer.entity';
 import { MockProxy } from '../mocks/mockproxy';
+import { Employer } from './entities/employer.entity';
+import { Location } from './entities/location.entity';
+import { Skill } from './entities/skill.entity';
 
 describe('JobOfferService', () => {
   let service: JobOfferService;
@@ -17,6 +20,18 @@ describe('JobOfferService', () => {
         JobOfferService,
         {
           provide: getRepositoryToken(JobOffer),
+          useFactory: MockProxy,
+        },
+        {
+          provide: getRepositoryToken(Employer),
+          useFactory: MockProxy,
+        },
+        {
+          provide: getRepositoryToken(Location),
+          useFactory: MockProxy,
+        },
+        {
+          provide: getRepositoryToken(Skill),
           useFactory: MockProxy,
         },
         {

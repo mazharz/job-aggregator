@@ -7,8 +7,8 @@ export class Location implements ILocation {
   id: number;
 
   @Column({ nullable: true })
-  state: string;
+  state?: string;
 
-  @Column({ nullable: true })
+  @Column({ unique: true })
   city: string;
 }

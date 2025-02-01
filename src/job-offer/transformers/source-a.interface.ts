@@ -1,9 +1,9 @@
 export interface SourceAResults {
-  metadata: {
-    requestId: string;
-    timestamp: string;
+  metadata?: {
+    requestId?: string;
+    timestamp?: string;
   };
-  jobs: SourceAJob[];
+  jobs?: SourceAJob[];
 }
 
 export interface SourceAJob {

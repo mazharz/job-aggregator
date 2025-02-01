@@ -1,4 +1,4 @@
-import { Controller, Post } from '@nestjs/common';
+import { Controller, Get, Post } from '@nestjs/common';
 import { JobOfferService } from './job-offer.service';
 
 @Controller('job-offer')
@@ -6,8 +6,14 @@ export class JobOfferController {
   constructor(private readonly jobOfferService: JobOfferService) {}
 
   @Post()
-  create() {
-    return 'hi';
-    // return this.jobOfferService.create();
+  async create() {
+    const result = await this.jobOfferService.aggregateData();
+    return result;
+  }
+
+  @Get()
+  async get() {
+    const result = await this.jobOfferService.getJobOffers();
+    return result;
   }
 }

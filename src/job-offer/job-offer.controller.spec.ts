@@ -8,6 +8,9 @@ import { HttpService } from '../http/http.service';
 import { DataFetcher } from './job-offer.fechter.service';
 import { SourceATransformer } from './transformers/source-a.transformer';
 import { SourceBTransformer } from './transformers/source-b.transformer';
+import { Employer } from './entities/employer.entity';
+import { Skill } from './entities/skill.entity';
+import { Location } from './entities/location.entity';
 
 describe('JobOfferController', () => {
   let controller: JobOfferController;
@@ -19,6 +22,18 @@ describe('JobOfferController', () => {
         JobOfferService,
         {
           provide: getRepositoryToken(JobOffer),
+          useFactory: MockProxy,
+        },
+        {
+          provide: getRepositoryToken(Employer),
+          useFactory: MockProxy,
+        },
+        {
+          provide: getRepositoryToken(Location),
+          useFactory: MockProxy,
+        },
+        {
+          provide: getRepositoryToken(Skill),
           useFactory: MockProxy,
         },
         {

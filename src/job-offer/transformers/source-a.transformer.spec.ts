@@ -1,3 +1,4 @@
+import { IJobOffer } from '../job-offer.interface';
 import { SourceAResults } from './source-a.interface';
 import { SourceATransformer } from './source-a.transformer';
 
@@ -40,7 +41,7 @@ const incoming: SourceAResults = {
   ],
 };
 
-const exptected = [
+const exptected: IJobOffer[] = [
   {
     externalId: 'P1-552',
     provider: 'sourceA',

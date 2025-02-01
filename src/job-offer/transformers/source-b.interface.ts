@@ -1,7 +1,7 @@
 export interface SourceBResults {
-  status: string;
-  data: {
-    jobsList: SourceBJobList;
+  status?: string;
+  data?: {
+    jobsList?: SourceBJobList;
   };
 }
 
@@ -11,23 +11,23 @@ export interface SourceBJobList {
 
 export interface SourceBJob {
   position: string;
-  location: {
+  location?: {
     city: string;
-    state: string;
-    remote: boolean;
+    state?: string;
+    remote?: boolean;
   };
-  compensation: {
-    min: number;
-    max: number;
-    currency: string;
+  compensation?: {
+    min?: number;
+    max?: number;
+    currency?: string;
   };
   employer: {
     companyName: string;
-    website: string;
+    website?: string;
   };
-  requirements: {
-    experience: number;
-    technologies: string[];
+  requirements?: {
+    experience?: number;
+    technologies?: string[];
   };
-  datePosted: string;
+  datePosted?: string;
 }

@@ -18,6 +18,8 @@ export class SourceATransformer implements DataTransformer<SourceAResults> {
     /^\$\d{1,3}(k|m)\s*-\s*\$\d{1,3}(k|m)$/;
 
   transform(data: SourceAResults): IJobOffer[] {
+    if (!data.jobs) return [];
+
     const transformed: IJobOffer[] = data.jobs.map((job) => {
       const salary = this.getSalary(job);
 
@@ -46,12 +48,12 @@ export class SourceATransformer implements DataTransformer<SourceAResults> {
     return job.skills.map((s) => ({ name: s }));
   }
 
-  private getLocation(job: SourceAJob): ILocation {
+  private getLocation(job: SourceAJob): ILocation | undefined {
     const splitted = job?.details?.location?.split(',');
-    return {
-      city: splitted?.[0]?.trim(),
-      state: splitted?.[1]?.trim(),
-    };
+    const city = splitted?.[0]?.trim();
+    const state = splitted?.[1]?.trim();
+    if (!city) return undefined;
+    return { city, state };
   }
 
   private getSalary(job: SourceAJob): {
