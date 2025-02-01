@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JobOffer } from './entities/job-offer.entity';
 import { Repository } from 'typeorm';
 import { IJobOffer } from './job-offer.interface';
-import { isFulfilled, isRejected } from 'src/helpers/promise';
+import { isFulfilled, isRejected } from '../helpers/promise';
 import { SourceAResults } from './transformers/source-a.interface';
 import { SourceBResults } from './transformers/source-b.interface';
 import { DataFetcher } from './job-offer.fechter.service';

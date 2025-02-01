@@ -1,34 +1,34 @@
 export interface IJobOffer {
-  id: number;
+  id?: number;
   externalId: string;
   provider: string;
   title: string;
-  remote: boolean;
-  minCompensation: number;
-  maxCompensation: number;
-  currency: string;
-  experienceRequired: number;
-  type: string;
-  datePosted: Date;
-  location: ILocation;
+  remote?: boolean;
+  minCompensation?: number;
+  maxCompensation?: number;
+  currency?: string;
+  experienceRequired?: number;
+  type?: string;
+  datePosted?: Date;
+  location?: ILocation;
   employer: IEmployer;
-  skills: ISkill[];
+  skills?: ISkill[];
 }
 
 export interface IEmployer {
-  id: number;
+  id?: number;
   companyName: string;
-  website: string;
-  industry: string;
+  website?: string;
+  industry?: string;
 }
 
 export interface ISkill {
-  id: number;
+  id?: number;
   name: string;
 }
 
 export interface ILocation {
-  id: number;
-  state: string;
-  city: string;
+  id?: number;
+  state?: string;
+  city?: string;
 }

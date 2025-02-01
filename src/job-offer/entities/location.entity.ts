@@ -6,9 +6,9 @@ export class Location implements ILocation {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ nullable: true })
   state: string;
 
-  @Column()
+  @Column({ nullable: true })
   city: string;
 }

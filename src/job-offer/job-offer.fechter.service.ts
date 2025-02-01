@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { HttpService } from 'src/http/http.service';
+import { HttpService } from '../http/http.service';
 import { DataTransformer } from './transformers/transformer.interface';
 import { IJobOffer } from './job-offer.interface';
 

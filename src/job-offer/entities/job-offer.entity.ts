@@ -32,28 +32,28 @@ export class JobOffer implements IJobOffer {
   @Column()
   title: string;
 
-  @Column()
+  @Column({ nullable: true })
   remote: boolean;
 
-  @Column()
+  @Column({ nullable: true })
   minCompensation: number;
 
-  @Column()
+  @Column({ nullable: true })
   maxCompensation: number;
 
-  @Column({ length: 3 })
+  @Column({ length: 3, nullable: true })
   currency: string;
 
-  @Column()
+  @Column({ nullable: true })
   experienceRequired: number;
 
-  @Column()
+  @Column({ nullable: true })
   type: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ nullable: true })
   datePosted: Date;
 
-  @ManyToOne(() => Location, { onDelete: 'SET NULL' })
+  @ManyToOne(() => Location, { nullable: true, onDelete: 'SET NULL' })
   location: Location;
 
   @ManyToOne(() => Employer, {
@@ -62,7 +62,7 @@ export class JobOffer implements IJobOffer {
   })
   employer: Employer;
 
-  @ManyToMany(() => Skill, { onDelete: 'SET NULL' })
+  @ManyToMany(() => Skill, { nullable: true, onDelete: 'SET NULL' })
   @JoinTable()
   skills: Skill[];
 }

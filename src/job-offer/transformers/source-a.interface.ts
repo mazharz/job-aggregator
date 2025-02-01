@@ -9,15 +9,15 @@ export interface SourceAResults {
 export interface SourceAJob {
   jobId: string;
   title: string;
-  details: {
-    location: string;
-    type: string;
-    salaryRange: string;
+  details?: {
+    location?: string;
+    type?: string;
+    salaryRange?: string;
   };
   company: {
     name: string;
-    industry: string;
+    industry?: string;
   };
-  skills: string[];
-  postedDate: string;
+  skills?: string[];
+  postedDate?: string;
 }

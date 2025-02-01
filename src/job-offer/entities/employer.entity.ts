@@ -9,9 +9,9 @@ export class Employer implements IEmployer {
   @Column({ unique: true })
   companyName: string;
 
-  @Column()
+  @Column({ nullable: true })
   website: string;
 
-  @Column()
+  @Column({ nullable: true })
   industry: string;
 }
