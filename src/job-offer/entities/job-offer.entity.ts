@@ -11,11 +11,12 @@ import {
 import { Employer } from './employer.entity';
 import { Skill } from './skill.entity';
 import { Location } from './location.entity';
+import { IJobOffer } from '../job-offer.interface';
 
 @Entity()
 // externalIds should be theoretically unique from each source
 @Unique(['externalId', 'provider'])
-export class JobOffer {
+export class JobOffer implements IJobOffer {
   @PrimaryGeneratedColumn()
   id: number;
 
