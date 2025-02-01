@@ -29,7 +29,23 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn'
+      '@typescript-eslint/no-unsafe-argument': 'warn',
+      'no-restricted-imports': [
+        'error',
+        {
+          name: '@nestjs/axios',
+          importNames: ['HttpModule'],
+          message:
+            'Please import HttpModule from src/http/http.module.ts instead',
+        },
+        {
+          name: '@nestjs/axios',
+          importNames: ['HttpService'],
+          message:
+            'Please import Checkbox from src/http/http.service.ts instead',
+        },
+      ],
     },
   },
 );
+

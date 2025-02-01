@@ -7,6 +7,7 @@ import { JobOffer } from './job-offer/entities/job-offer.entity';
 import { Employer } from './job-offer/entities/employer.entity';
 import { Skill } from './job-offer/entities/skill.entity';
 import { Location } from './job-offer/entities/location.entity';
+import { HttpModule } from './http/http.module';
 
 const ENTITIES = [JobOffer, Employer, Skill, Location];
 
@@ -24,6 +25,7 @@ const ENTITIES = [JobOffer, Employer, Skill, Location];
       synchronize: true,
     }),
     JobOfferModule,
+    HttpModule,
   ],
   controllers: [AppController],
   providers: [],
