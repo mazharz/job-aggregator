@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JobOffer } from './entities/job-offer.entity';
 import { In, Repository } from 'typeorm';
@@ -52,7 +52,7 @@ export class JobOfferService {
     });
 
     const data = promises.filter(isFulfilled).flatMap((p) => p.value);
-    const result = this.storeJobOffers(data);
+    const result = await this.storeJobOffers(data);
 
     return result;
   }
@@ -62,7 +62,7 @@ export class JobOfferService {
     const locationsMap = new Map<string, ILocation>();
     const skillsSet = new Set<string>();
 
-    // Collect unique entities
+    // collect unique entities
     data.forEach((job) => {
       if (job.employer.companyName)
         employersMap.set(job.employer.companyName, job.employer);
@@ -70,7 +70,7 @@ export class JobOfferService {
       job.skills?.forEach((skill) => skillsSet.add(skill.name));
     });
 
-    // Fetch existing records from the database
+    // fetch existing records from the database
     const [existingEmployers, existingLocations, existingSkills] =
       await Promise.all([
         this.employerRepository.find({
@@ -82,7 +82,7 @@ export class JobOfferService {
         this.skillRepository.find({ where: { name: In([...skillsSet]) } }),
       ]);
 
-    // Convert existing entities into maps for quick lookup
+    // convert existing entities into maps for quick lookup
     const existingEmployerMap = new Map(
       existingEmployers.map((e) => [e.companyName, e]),
     );
@@ -91,7 +91,7 @@ export class JobOfferService {
     );
     const existingSkillsMap = new Map(existingSkills.map((s) => [s.name, s]));
 
-    // Filter out new entries that don't exist in the DB
+    // filter out new entries that don't exist in the DB
     const newEmployers = [...employersMap.values()].filter(
       (e) => !existingEmployerMap.has(e.companyName),
     );
@@ -102,14 +102,14 @@ export class JobOfferService {
       .filter((s) => !existingSkillsMap.has(s))
       .map((name) => ({ name }));
 
-    // Insert new employers, locations, and skills
+    // insert new employers, locations, and skills
     const [employerInsert, locationInsert, skillInsert] = await Promise.all([
       this.employerRepository.insert(newEmployers),
       this.locationRepository.insert(newLocations),
       this.skillRepository.insert(newSkills),
     ]);
 
-    // Update maps with newly inserted records
+    // update maps with newly inserted records
     newEmployers.forEach((e, idx) =>
       existingEmployerMap.set(e.companyName, {
         ...e,
@@ -129,7 +129,7 @@ export class JobOfferService {
       }),
     );
 
-    // Prepare job offers for insertion
+    // prepare job offers for insertion
     const jobOffersToInsert = data.map((o) => ({
       ...o,
       employer: existingEmployerMap.get(o.employer.companyName),
@@ -142,7 +142,7 @@ export class JobOfferService {
           .filter((s) => !!s) ?? undefined,
     }));
 
-    // Insert job offers
+    // insert job offers
     const insertedJobOffers: IInsertedJobOffer = await this.jobOfferRepository
       .createQueryBuilder()
       .insert()
@@ -207,7 +207,10 @@ export class JobOfferService {
       type,
       sortByPostedDate,
       employerName,
+      city,
       skills,
+      page,
+      limit = 10,
     } = getJobOffersDto;
 
     if (title) {
@@ -252,6 +255,10 @@ export class JobOfferService {
       });
     }
 
+    if (city) {
+      query.andWhere('location.city ILIKE :city', { city: `%${city}%` });
+    }
+
     if (skills) {
       query.andWhere('skill.name IN (:...skills)', { skills });
     }
@@ -260,7 +267,22 @@ export class JobOfferService {
       query.orderBy('job_offer.datePosted', sortByPostedDate);
     }
 
+    if (limit) {
+      query.limit(limit);
+    }
+
+    if (page) {
+      query.offset((page - 1) * limit);
+    }
+
     const data = await query.getMany();
+
+    if (!data.length) {
+      throw new NotFoundException(
+        'There are no results for the provided search parameters, try changing the filters.',
+      );
+    }
+
     return data;
   }
 }

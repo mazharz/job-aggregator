@@ -9,7 +9,17 @@ import {
   IsString,
 } from 'class-validator';
 
-export class GetJobOfferDto {
+export class PaginationDto {
+  @IsOptional()
+  @IsNumber()
+  page?: number;
+
+  @IsOptional()
+  @IsNumber()
+  limit?: number;
+}
+
+export class GetJobOfferDto extends PaginationDto {
   @IsOptional()
   @IsString()
   title?: string;
@@ -45,6 +55,10 @@ export class GetJobOfferDto {
   @IsOptional()
   @IsString()
   employerName?: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
 
   @IsOptional()
   @IsArray()

@@ -10,10 +10,17 @@ export class JobOfferJobs {
 
   @Cron(process.env.JOB_FETCH_FREQUENCY ?? '0 0 * * * *')
   async sendObjectSuggestionEmails() {
-    this.logger.log('Run job for fetching job offers');
-
-    const results = await this.jobOfferService.aggregateData();
-
-    this.logger.log(`Fetching job offers done, inserted: ${results.inserted}.`);
+    try {
+      this.logger.log('Run job for fetching job offers');
+      const results = await this.jobOfferService.aggregateData();
+      this.logger.log(
+        `Fetching job offers done, inserted: ${results.inserted}.`,
+      );
+    } catch (error) {
+      this.logger.error(
+        'An error happened during job offer aggregation',
+        error,
+      );
+    }
   }
 }
