@@ -17,7 +17,7 @@ interface Config extends AxiosRequestConfig {
 
 @Injectable()
 export class HttpService {
-  private readonly logger = new Logger(HttpService.name);
+  readonly logger = new Logger(HttpService.name);
 
   constructor(private readonly nestHttpService: NestHttpService) {}
 
