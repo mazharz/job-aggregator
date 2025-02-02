@@ -1,5 +1,6 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, Post, Query } from '@nestjs/common';
 import { JobOfferService } from './job-offer.service';
+import { GetJobOfferDto } from './dto/get-job-offer.dto';
 
 @Controller('job-offer')
 export class JobOfferController {
@@ -12,8 +13,8 @@ export class JobOfferController {
   }
 
   @Get()
-  async get() {
-    const result = await this.jobOfferService.getJobOffers();
+  async get(@Query() getJobOffersDto: GetJobOfferDto) {
+    const result = await this.jobOfferService.getJobOffers(getJobOffersDto);
     return result;
   }
 }

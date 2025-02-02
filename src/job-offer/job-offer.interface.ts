@@ -32,3 +32,11 @@ export interface ILocation {
   state?: string;
   city: string;
 }
+
+export interface IInsertedJobOffer {
+  raw: {
+    id: number;
+    externalId: string;
+    provider: string;
+  }[];
+}

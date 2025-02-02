@@ -2,7 +2,12 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JobOffer } from './entities/job-offer.entity';
 import { In, Repository } from 'typeorm';
-import { IEmployer, IJobOffer, ILocation } from './job-offer.interface';
+import {
+  IEmployer,
+  IInsertedJobOffer,
+  IJobOffer,
+  ILocation,
+} from './job-offer.interface';
 import { isFulfilled, isRejected } from '../helpers/promise';
 import { SourceAResults } from './transformers/source-a.interface';
 import { SourceBResults } from './transformers/source-b.interface';
@@ -10,6 +15,7 @@ import { DataFetcher } from './job-offer.fechter.service';
 import { Employer } from './entities/employer.entity';
 import { Location } from './entities/location.entity';
 import { Skill } from './entities/skill.entity';
+import { GetJobOfferDto } from './dto/get-job-offer.dto';
 
 @Injectable()
 export class JobOfferService {
@@ -51,14 +57,10 @@ export class JobOfferService {
     return result;
   }
 
-  async storeJobOffers(data: IJobOffer[]): Promise<{
-    inserted: number;
-    duplicates: number;
-  }> {
+  async storeJobOffers(data: IJobOffer[]): Promise<{ inserted: number }> {
     const employersMap = new Map<string, IEmployer>();
     const locationsMap = new Map<string, ILocation>();
     const skillsSet = new Set<string>();
-    const jobOffersMap = new Map<string, IJobOffer>();
 
     // Collect unique entities
     data.forEach((job) => {
@@ -66,31 +68,19 @@ export class JobOfferService {
         employersMap.set(job.employer.companyName, job.employer);
       if (job.location?.city) locationsMap.set(job.location.city, job.location);
       job.skills?.forEach((skill) => skillsSet.add(skill.name));
-      jobOffersMap.set(`${job.provider}-${job.externalId}`, job);
     });
 
     // Fetch existing records from the database
-    const [
-      existingEmployers,
-      existingLocations,
-      existingSkills,
-      existingJobOffers,
-    ] = await Promise.all([
-      this.employerRepository.find({
-        where: { companyName: In([...employersMap.keys()]) },
-      }),
-      this.locationRepository.find({
-        where: { city: In([...locationsMap.keys()]) },
-      }),
-      this.skillRepository.find({ where: { name: In([...skillsSet]) } }),
-      this.jobOfferRepository.find({
-        where: {
-          externalId: In(
-            [...jobOffersMap.keys()].map((key) => key.split('-')[1]),
-          ),
-        },
-      }),
-    ]);
+    const [existingEmployers, existingLocations, existingSkills] =
+      await Promise.all([
+        this.employerRepository.find({
+          where: { companyName: In([...employersMap.keys()]) },
+        }),
+        this.locationRepository.find({
+          where: { city: In([...locationsMap.keys()]) },
+        }),
+        this.skillRepository.find({ where: { name: In([...skillsSet]) } }),
+      ]);
 
     // Convert existing entities into maps for quick lookup
     const existingEmployerMap = new Map(
@@ -100,9 +90,6 @@ export class JobOfferService {
       existingLocations.map((l) => [l.city, l]),
     );
     const existingSkillsMap = new Map(existingSkills.map((s) => [s.name, s]));
-    const existingJobOffersMap = new Map(
-      existingJobOffers.map((o) => [`${o.provider}-${o.externalId}`, o]),
-    );
 
     // Filter out new entries that don't exist in the DB
     const newEmployers = [...employersMap.values()].filter(
@@ -114,9 +101,6 @@ export class JobOfferService {
     const newSkills = [...skillsSet]
       .filter((s) => !existingSkillsMap.has(s))
       .map((name) => ({ name }));
-    const newJobOffers = [...jobOffersMap.values()].filter(
-      (o) => !existingJobOffersMap.has(`${o.provider}-${o.externalId}`),
-    );
 
     // Insert new employers, locations, and skills
     const [employerInsert, locationInsert, skillInsert] = await Promise.all([
@@ -146,7 +130,7 @@ export class JobOfferService {
     );
 
     // Prepare job offers for insertion
-    const jobOffersToInsert = newJobOffers.map((o) => ({
+    const jobOffersToInsert = data.map((o) => ({
       ...o,
       employer: existingEmployerMap.get(o.employer.companyName),
       location: o.location?.city
@@ -159,19 +143,40 @@ export class JobOfferService {
     }));
 
     // Insert job offers
-    const jobOfferInsert =
-      await this.jobOfferRepository.insert(jobOffersToInsert);
+    const insertedJobOffers: IInsertedJobOffer = await this.jobOfferRepository
+      .createQueryBuilder()
+      .insert()
+      .into(JobOffer)
+      .values(jobOffersToInsert)
+      .orIgnore()
+      .returning(['id', 'externalId', 'provider'])
+      .execute();
 
-    // Handle job-offer-skill relations
-    const jobOfferSkillRelations = jobOffersToInsert.flatMap((o, idx) =>
-      o.skills
-        ?.filter((s) => s?.name && s?.id)
-        .map((s) => ({
-          jobOfferId: jobOfferInsert.identifiers[idx].id as number,
-          skillId: s.id,
-        }))
-        .filter((s) => s.skillId && s.jobOfferId),
-    );
+    // create mappings between job offers and skills
+    const jobOfferSkillRelations = insertedJobOffers.raw
+      .flatMap((insertedOffer) => {
+        const matchingJobOfferWithSkillData = jobOffersToInsert.find(
+          (o) =>
+            o.externalId === insertedOffer.externalId &&
+            o.provider === insertedOffer.provider,
+        );
+
+        if (
+          !matchingJobOfferWithSkillData ||
+          !matchingJobOfferWithSkillData.skills
+        ) {
+          return null;
+        }
+
+        const skills = matchingJobOfferWithSkillData.skills
+          .filter((s) => s.name && s.id)
+          .map((s) => ({
+            jobOfferId: insertedOffer.id,
+            skillId: s.id,
+          }));
+        return skills;
+      })
+      .filter((o) => o !== null);
 
     await this.jobOfferRepository
       .createQueryBuilder()
@@ -181,17 +186,81 @@ export class JobOfferService {
       .execute();
 
     return {
-      inserted: jobOffersToInsert.length,
-      duplicates: data.length - jobOffersToInsert.length,
+      inserted: insertedJobOffers.raw.length,
     };
   }
 
-  async getJobOffers(): Promise<IJobOffer[]> {
-    const results = await this.jobOfferRepository.find({
-      relations: ['employer', 'location', 'skills'],
-      order: { datePosted: 'DESC' }, // Sort by newest first
-    });
+  async getJobOffers(getJobOffersDto: GetJobOfferDto): Promise<IJobOffer[]> {
+    const query = this.jobOfferRepository
+      .createQueryBuilder('job_offer')
+      .leftJoinAndSelect('job_offer.employer', 'employer')
+      .leftJoinAndSelect('job_offer.location', 'location')
+      .leftJoinAndSelect('job_offer.skills', 'skill');
 
-    return results;
+    const {
+      title,
+      remote,
+      minCompensation,
+      maxCompensation,
+      currency,
+      experienceRequired,
+      type,
+      sortByPostedDate,
+      employerName,
+      skills,
+    } = getJobOffersDto;
+
+    if (title) {
+      query.andWhere('job_offer.title ILIKE :title', { title: `%${title}%` });
+    }
+
+    if (remote) {
+      query.andWhere('job_offer.remote = :remote', { remote });
+    }
+
+    if (minCompensation) {
+      query.andWhere('job_offer.minCompensation >= :minCompensation', {
+        minCompensation,
+      });
+    }
+
+    if (maxCompensation) {
+      query.andWhere('job_offer.maxCompensation <= :maxCompensation', {
+        maxCompensation,
+      });
+    }
+
+    if (currency) {
+      query.andWhere('job_offer.currency ILIKE :currency', {
+        currency: `%${currency}%`,
+      });
+    }
+
+    if (experienceRequired) {
+      query.andWhere('job_offer.experienceRequired <= :experienceRequired', {
+        experienceRequired,
+      });
+    }
+
+    if (type) {
+      query.andWhere('job_offer.type ILIKE :type', { type: `%${type}%` });
+    }
+
+    if (employerName) {
+      query.andWhere('employer.companyName ILIKE :employerName', {
+        employerName: `%${employerName}%`,
+      });
+    }
+
+    if (skills) {
+      query.andWhere('skill.name IN (:...skills)', { skills });
+    }
+
+    if (sortByPostedDate) {
+      query.orderBy('job_offer.datePosted', sortByPostedDate);
+    }
+
+    const data = await query.getMany();
+    return data;
   }
 }

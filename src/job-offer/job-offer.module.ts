@@ -10,12 +10,14 @@ import { HttpService } from 'src/http/http.service';
 import { Employer } from './entities/employer.entity';
 import { Location } from './entities/location.entity';
 import { Skill } from './entities/skill.entity';
+import { JobOfferJobs } from './job-offer.job';
 
 @Module({
   imports: [TypeOrmModule.forFeature([JobOffer, Employer, Location, Skill])],
   controllers: [JobOfferController],
   providers: [
     JobOfferService,
+    JobOfferJobs,
     {
       provide: 'FetcherA',
       useFactory: (httpService: HttpService) =>

@@ -8,11 +8,13 @@ import { Employer } from './job-offer/entities/employer.entity';
 import { Skill } from './job-offer/entities/skill.entity';
 import { Location } from './job-offer/entities/location.entity';
 import { HttpModule } from './http/http.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 const ENTITIES = [JobOffer, Employer, Skill, Location];
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',
