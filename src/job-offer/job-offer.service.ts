@@ -19,7 +19,7 @@ import { GetJobOfferDto } from './dto/get-job-offer.dto';
 
 @Injectable()
 export class JobOfferService {
-  private readonly logger = new Logger(JobOfferService.name);
+  readonly logger = new Logger(JobOfferService.name);
 
   constructor(
     @InjectRepository(JobOffer)
@@ -48,7 +48,7 @@ export class JobOfferService {
 
     // log the failed ones
     promises.filter(isRejected).forEach((p) => {
-      this.logger.error('Job offer provider failed', JSON.stringify(p.reason));
+      this.logger.error('Job offer provider failed', p.reason);
     });
 
     const data = promises.filter(isFulfilled).flatMap((p) => p.value);

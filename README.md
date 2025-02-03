@@ -10,3 +10,4 @@
    - I am aware that `.env` shouldn't be stored in git, but for the ease of use from your end, I included it
 1. Run the application via `npm run start:dev`
 1. You can see the documentation at `http://localhost:3000/docs`
+1. You can run the tests with `npm run test`

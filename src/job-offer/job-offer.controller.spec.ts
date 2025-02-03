@@ -13,7 +13,6 @@ import { Employer } from './entities/employer.entity';
 import { Skill } from './entities/skill.entity';
 import { Location } from './entities/location.entity';
 import { GetJobOfferDto } from './dto/get-job-offer.dto';
-import { IJobOffer } from './job-offer.interface';
 
 describe('JobOfferController', () => {
   let controller: JobOfferController;
@@ -75,12 +74,7 @@ describe('JobOfferController', () => {
       page: 1,
       limit: 10,
     };
-    jest
-      .spyOn(controller, 'get')
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      .mockImplementation((_params: GetJobOfferDto) => {
-        return Promise.resolve([] as IJobOffer[]);
-      });
+    jest.spyOn(controller, 'get').mockImplementation();
     await controller.get(jobOfferData);
     expect(controller.get).toHaveBeenCalledWith(jobOfferData);
   });

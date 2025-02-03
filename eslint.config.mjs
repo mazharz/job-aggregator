@@ -45,7 +45,7 @@ export default tseslint.config(
             'Please import Checkbox from src/http/http.service.ts instead',
         },
       ],
+      '@typescript-eslint/unbound-method': ['off'],
     },
   },
 );
-
